@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>註冊帳號</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: sans-serif; background: #f6f7f9; margin: 0; }
+    .card { max-width: 420px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+    h1 { font-size: 22px; margin: 0 0 16px; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; }
+    input { width: 100%; padding: 10px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px; }
+    button { width: 100%; margin-top: 16px; padding: 10px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .tip { color: #6b7280; font-size: 12px; margin-top: 6px; }
+    .msg { margin-top: 12px; font-size: 14px; min-height: 20px; }
+    .msg.error { color: #b91c1c; }
+    .msg.success { color: #166534; }
+    a { color: #2563eb; text-decoration: none; }
+    .nav { text-align: center; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>註冊</h1>
+    <form action="/register" method="POST" novalidate>
+      <label for="account">帳號</label>
+      <input id="account" type="text" name="account" required />
+      <div class="tip">3~100 位英數字，可含 . _ -</div>
+
+      <label for="password">密碼</label>
+      <input id="password" type="password" name="password" required />
+      <div class="tip">8~12 位，需同時包含英文字母與數字，且不可含空白</div>
+
+      <label for="second_code">二次驗證碼</label>
+      <input id="second_code" type="text" name="second_code" maxlength="6" required />
+      <div class="tip">請設定 6 位數字（請妥善保存）</div>
+
+      <button type="submit">建立帳號</button>
+      <div class="msg" id="msg" aria-live="polite"></div>
+    </form>
+
+    <div class="nav">
+      <a href="/login">已有帳號？前往登入</a>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const p = new URLSearchParams(location.search);
+      const msg = p.get('msg');
+      const type = p.get('type');
+      const el = document.getElementById('msg');
+      if (msg) {
+        el.textContent = msg;
+        if (type === 'error') el.classList.add('error');
+        if (type === 'success') el.classList.add('success');
+      }
+    })();
+  </script>
+</body>
+</html>
