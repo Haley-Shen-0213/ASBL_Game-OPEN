@@ -1,226 +1,63 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>首頁</title>
-    <style>
-      :root{
-        --bg:#0f172a; --bar:#ea580c; --text:#ffffff; --muted:#e5e7eb;
-        --border:#334155; --btn:#111827; --btn-b:#475569;
-        --panel:#0b1220; --hover:#1f2937; --accent:#ea580c;
-      }
-      html,body{height:100%}
-      body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC","Microsoft JhengHei",sans-serif;}
-
-      .header{
-        display:grid;
-        grid-template-columns: 1fr 1fr auto;
-        align-items:center;
-        gap:16px;
-        padding:12px 18px;
-        background: var(--bar);
-      }
-      .left-block{ display:flex; align-items:center; gap:12px; }
-      /* 新增：把整個左側區塊包成可點擊連結時的樣式重置 */
-      .link-reset{ text-decoration:none; color:inherit; display:flex; align-items:center; gap:12px; }
-      .link-reset:focus-visible{ outline:2px solid rgba(255,255,255,.35); outline-offset:2px; border-radius:8px; }
-      .logo-box{
-        width:40px; height:40px; border-radius:8px; overflow:hidden;
-        background:#fff2; display:flex; align-items:center; justify-content:center;
-        border:1px solid rgba(255,255,255,.25);
-      }
-      .logo-box img{width:100%; height:100%; object-fit:contain}
-      .game-name{ line-height:1.2; }
-      .game-name .line{ display:block; font-weight:700 }
-      .game-name .line:nth-child(1){ font-size:18px }
-      .game-name .line:nth-child(2){ font-size:16px }
-      .game-name .line:nth-child(3){ font-size:16px }
-
-      /* 微亮的 hover 效果（整塊可點時維持既有視覺） */
-      .logo-box:hover, .game-name:hover{ filter:brightness(1.08) }
-
-      .middle-block{ display:flex; flex-direction:column; gap:4px; color:var(--muted); }
-      .middle-block .row{ font-size:14px }
-      .middle-block strong{ color:#fff }
-
-      .right-block{ display:flex; align-items:center; gap:10px; }
-      .avatar{
-        width:28px; height:28px; border-radius:50%; background:#0003;
-        border:1px solid rgba(255,255,255,.35);
-        display:flex; align-items:center; justify-content:center;
-        font-size:12px; font-weight:700;
-      }
-      .btn{
-        background:var(--btn); color:#fff; border:1px solid var(--btn-b);
-        padding:6px 10px; border-radius:8px; cursor:pointer; font-size:14px;
-      }
-      .btn:hover{ filter:brightness(1.1) }
-
-      .app{ display:flex; min-height: calc(100vh - 64px); }
-      .sidebar{
-        width:240px; background:var(--panel); border-right:1px solid var(--border);
-        padding:16px 12px;
-      }
-      .sidebar .section-title{ font-size:12px; color:#94a3b8; letter-spacing:.05em; margin:0 8px 8px; }
-      .nav{ list-style:none; margin:0; padding:0; }
-      .nav li{ margin-bottom:6px; }
-      .nav a{
-        display:flex; align-items:center; gap:8px;
-        color:#e2e8f0; text-decoration:none;
-        padding:10px 12px; border-radius:8px;
-        border:1px solid transparent;
-      }
-      .nav a:hover{ background:var(--hover); border-color:var(--border); }
-      .nav a.active{ background:#0f172a; border-color:var(--accent); color:#fff; }
-
-      .main{ flex:1; padding:24px; }
-      .card{ border:1px dashed var(--border); border-radius:12px; padding:24px; color:#cbd5e1; text-align:center; }
-
-      .page-content{ padding:24px; min-height: calc(100vh - 64px); }
-      .placeholder{ border:1px dashed var(--border); border-radius:12px; padding:24px; color:#cbd5e1; text-align:center; }
-
-      @media (max-width: 768px){
-        .header{ grid-template-columns: 1fr; gap:10px }
-        .middle-block{ order:3 }
-        .right-block{ order:2; justify-content:flex-start }
-        .sidebar{ width: 100%; border-right:none; border-bottom:1px solid var(--border); }
-        .app{ flex-direction:column; }
-      }
-    </style>
-  </head>
-  <body>
-    <header class="header">
-      <div class="left-block">
-        <a href="{{ url_for('index') }}" class="link-reset" aria-label="回到首頁">
-            <div class="logo-box">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo" />
-            </div>
-            <div class="game-name">
-            <span class="line">ASha</span>
-            <span class="line">Basketball</span>
-            <span class="line">League</span>
-            </div>
-        </a>
-      </div>
-
-      <div class="middle-block">
-        <div class="row">日期：<strong id="date-text">—</strong></div>
-        <div class="row">時間（台北）：<strong id="time-text">—</strong></div>
-        <div class="row">線上人數：<strong>{{ online_count or 0 }}</strong></div>
-      </div>
-
-      <div class="right-block">
-        <span class="avatar">{{ (account or "G")[:1] }}</span>
-        <span>{{ account or "Guest" }}</span>
-        {% if account %}
-        <form action="{{ url_for('logout') }}" method="post" style="margin:0">
-          <button class="btn" type="submit">登出</button>
-        </form>
-        {% else %}
-        <a class="btn" href="{{ url_for('login_page') }}">登入</a>
-        {% endif %}
-      </div>
-    </header>
-
-    {% if account %}
-    <div class="app">
-      <aside class="sidebar">
-        <div class="section-title">選單</div>
-        <ul class="nav">
-            <li><a href="{{ url_for('players') }}" class="{% if active_tab=='players' %}active{% endif %}">玩家</a></li>
-            <li><a href="{{ url_for('teams') }}" class="{% if active_tab=='teams' %}active{% endif %}">球隊</a></li>
-            <li><a href="{{ url_for('assets') }}" class="{% if active_tab=='assets' %}active{% endif %}">資產</a></li>
-            <li><a href="{{ url_for('leagues') }}" class="{% if active_tab=='leagues' %}active{% endif %}">聯賽</a></li>
-            <li><a href="{{ url_for('schedules') }}" class="{% if active_tab=='schedules' %}active{% endif %}">賽程</a></li>
-            <li><a href="{{ url_for('tactics') }}" class="{% if active_tab=='tactics' %}active{% endif %}">戰術</a></li>
-            <li><a href="{{ url_for('scouts') }}" class="{% if active_tab=='scouts' %}active{% endif %}">球探</a></li>
-            <li><a href="{{ url_for('market') }}" class="{% if active_tab=='market' %}active{% endif %}">市場</a></li>
-            <li><a href="{{ url_for('trades') }}" class="{% if active_tab=='trades' %}active{% endif %}">交易</a></li>
-            <li><a href="{{ url_for('community') }}" class="{% if active_tab=='community' %}active{% endif %}">社群</a></li>
-            <li><a href="{{ url_for('guide') }}" class="{% if active_tab=='guide' %}active{% endif %}">指南</a></li>
-        </ul>
-      </aside>
-      <main class="main">
-        <div class="card">
-          {% if active_tab %}
-            <p>目前所在功能：<strong>{{ active_tab }}</strong></p>
-            <p>這裡顯示「{{ active_tab }}」的主要內容。</p>
-          {% else %}
-            <p>歡迎回來，{{ account }}！從左側選單開始操作吧。</p>
-          {% endif %}
-        </div>
-      </main>
+{% extends "base.html" %}
+{% block title %}首頁{% endblock %}
+{% block content %}
+  <section class="panel" style="padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--panel);">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <h2 style="margin:0; font-size:20px; font-weight:700;">歡迎回來，{{ profile.player_name }}！</h2>      
     </div>
-    {% else %}
-    <main class="page-content">
-      <div class="placeholder">
-        <p>您目前為訪客，請先登入以存取更多功能。</p>
+
+    <div style="height:12px;"></div>
+
+    {% if profile %}
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+        <div style="padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02);">
+          <div style="font-size:12px; color:var(--muted);">玩家名稱</div>
+          <div style="font-size:16px; font-weight:600;">{{ profile.player_name }}</div>
+        </div>
+        <div style="padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02);">
+          <div style="font-size:12px; color:var(--muted);">球隊名稱</div>
+          <div style="font-size:16px; font-weight:600;">{{ profile.team_name }}</div>
+        </div>
+        <div style="padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02);">
+          <div style="font-size:12px; color:var(--muted);">場館名稱</div>
+          <div style="font-size:16px; font-weight:600;">{{ profile.arena_name }}</div>
+        </div>
+        <div style="padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02);">
+          <div style="font-size:12px; color:var(--muted);">粉絲團名稱</div>
+          <div style="font-size:16px; font-weight:600;">{{ profile.fanpage_name }}</div>
+        </div>
+        <div style="padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02);">
+          <div style="font-size:12px; color:var(--muted);">球隊資金</div>
+          <div style="font-size:16px; font-weight:600;">{{ profile.team_money }}</div>
+        </div>
+        <div style="padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02);">
+          <div style="font-size:12px; color:var(--muted);">球探次數</div>
+          <div style="font-size:16px; font-weight:600;">{{ profile.scouting_chances_left }}</div>
+        </div>
+        <div style="padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02);">
+          <div style="font-size:12px; color:var(--muted);">聯賽戰績</div>
+          <div style="font-size:16px; font-weight:600;">{{ league_results }}</div>
+        </div>
+        <div style="padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02);">
+          <div style="font-size:12px; color:var(--muted);">發展聯賽戰績</div>
+          <div style="font-size:16px; font-weight:600;">{{ rookie_league_results }}</div>
+        </div>
       </div>
-    </main>
+
+      <div style="height:12px;"></div>
+
+    {% else %}
+      <div style="padding:14px; border:1px dashed var(--btn-b); border-radius:10px; background:rgba(234,88,12,0.08);">
+        <div style="font-weight:600; margin-bottom:6px;">尚未建立玩家資訊</div>
+        <div style="font-size:14px; color:var(--muted);">為了完整體驗，請先建立你的玩家檔案。</div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <a href="{{ url_for('players_setup') }}"
+         style="display:inline-flex; align-items:center; gap:8px; padding:10px 14px; background:var(--accent); color:#111; border:1px solid var(--btn-b); border-radius:10px; text-decoration:none; font-weight:700;">
+        前往填寫
+      </a>
     {% endif %}
-
-    <script>
-      function updateTaipeiTime() {
-        const now = new Date();
-        const tz = 'Asia/Taipei';
-        const optsDate = { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' };
-        const optsTime = { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-        const d = new Intl.DateTimeFormat('zh-TW', optsDate).format(now);
-        const t = new Intl.DateTimeFormat('zh-TW', optsTime).format(now);
-        const dateEl = document.getElementById('date-text');
-        const timeEl = document.getElementById('time-text');
-        if (dateEl) dateEl.textContent = d;
-        if (timeEl) timeEl.textContent = t;
-      }
-      updateTaipeiTime();
-      setInterval(updateTaipeiTime, 1000);
-    </script>
-
-    <script>
-      (function() {
-        const IDLE_MINUTES = 10;
-        const TIMEOUT_MS = IDLE_MINUTES * 60 * 1000;
-        let idleTimer = null;
-
-        function logoutAndRedirect(broadcast) {
-          fetch('{{ url_for("logout") }}', { method: 'POST', credentials: 'same-origin' })
-            .finally(() => {
-              if (broadcast && window.bc) {
-                try { window.bc.postMessage('logout'); } catch (e) {}
-              }
-              window.location.href = '{{ url_for("login_page") }}';
-            });
-        }
-
-        function setIdleTimer() {
-          if (idleTimer) clearTimeout(idleTimer);
-          idleTimer = setTimeout(() => logoutAndRedirect(true), TIMEOUT_MS);
-        }
-
-        const reset = () => setIdleTimer();
-        ['mousemove', 'keydown', 'wheel', 'touchstart', 'scroll', 'click'].forEach(ev =>
-          window.addEventListener(ev, reset, { passive: true })
-        );
-        document.addEventListener('visibilitychange', reset);
-
-        try {
-          window.bc = new BroadcastChannel('idle-sync');
-          bc.onmessage = (e) => {
-            if (e.data === 'logout') {
-              logoutAndRedirect(false);
-            } else if (e.data === 'reset') {
-              setIdleTimer();
-            }
-          };
-          const broadcastReset = () => {
-            try { bc.postMessage('reset'); } catch (e) {}
-          };
-          window.addEventListener('mousemove', broadcastReset, { passive: true });
-          window.addEventListener('keydown', broadcastReset);
-        } catch (e) {}
-        setIdleTimer();
-      })();
-    </script>
-  </body>
-</html>
+  </section>
+{% endblock %}

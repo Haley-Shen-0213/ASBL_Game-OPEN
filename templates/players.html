@@ -1,9 +1,30 @@
 {% extends "base.html" %}
-{% set active_tab = "players" %}
-{% block title %}玩家 - ASha Basketball League{% endblock %}
 {% block content %}
-  <div class="card">
-    <p>目前所在功能：<strong>players</strong></p>
-    <p>這裡是玩家頁面的內容區。</p>
-  </div>
+<div class="player-card">
+  {% if profile %}
+    <div class="player-header">
+      <h2 class="player-title">玩家資訊</h2>
+    </div>
+
+    <div class="player-body">
+      <ul class="info-list">
+        <li>玩家名稱：{{ profile.player_name or '—' }}</li>
+        <li>球隊名稱：{{ profile.team_name or '—' }}</li>
+        <li>球隊資金：{{ profile.team_money if profile.team_money is not none else '0' }}</li>
+        <li>球隊人數：{{ profile.team_player_count if profile.team_player_count is not none else '0' }}</li>
+        <li>場館名稱：{{ profile.arena_name or '—' }}</li>
+        <li>場館座位數：{{ profile.arena_seat_count if profile.arena_seat_count is not none else '0' }}</li>
+        <li>粉絲團名稱：{{ profile.fanpage_name or '—' }}</li>
+        <li>粉絲團員工：{{ profile.fanclub_staff_count if profile.fanclub_staff_count is not none else '0' }}</li>
+        <li>粉絲團人數：{{ profile.fanclub_member_count if profile.fanclub_member_count is not none else '0' }}</li>
+        <li>球探可用次數：{{ profile.scouting_chances_left if profile.scouting_chances_left is not none else '0' }}</li>
+        <a class="edit-btn" href="{{ url_for('players_setup') }}">編輯</a>
+      </ul>
+    </div>
+  {% else %}
+    <h2 class="player-title">尚未建立玩家資訊</h2>
+    <p>請先完成玩家基本設定。</p>
+    <a class="edit-btn" href="{{ url_for('players_setup') }}">前往填寫</a>
+  {% endif %}
+</div>
 {% endblock %}

@@ -2,8 +2,335 @@
 {% set active_tab = "scouts" %}
 {% block title %}球探 - ASha Basketball League{% endblock %}
 {% block content %}
-  <div class="card">
-    <p>目前所在功能：<strong>scouts</strong></p>
-    <p>這裡是球探頁面的內容區。</p>
+  <div class="card space-y-4">
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl font-bold">球探</h1>
+      <div class="text-sm">
+        親愛的
+        <span class="font-semibold">{{ player_profile.player_name }}</span>
+      </div>
+      <div class="text-sm">
+        您可用的球探次數：
+        <span class="font-semibold">{{ player_profile.scouting_chances_left }}</span>
+      </div>
+      <div class="text-sm">
+        球隊簽約人數(上限40)：
+        <span class="font-semibold">{{ player_profile.team_player_count }}</span>
+      </div>
+      <div class="text-sm">
+        球隊簽約薪資(上限200,000)：
+        <span class="font-semibold">{{ player_profile.team_salary }}</span>
+      </div>
+    </div>
+
+    <!-- 橫向排列、置中、稍微加大間距，窄螢幕可換行 -->
+    <div class="flex flex-row flex-wrap justify-center items-center gap-4">
+      <form action="{{ url_for('scouts_post', action='probe') }}" method="post">
+        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>{% endif %}
+        <input type="hidden" name="times" value="1">
+        <button type="submit" class="btn btn-primary">探查 1 次</button>
+      </form>
+
+      {% if player_profile.scouting_chances_left is defined and player_profile.scouting_chances_left|int >= 10 %}
+      <form action="{{ url_for('scouts_post', action='probe') }}" method="post">
+        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>{% endif %}
+        <input type="hidden" name="times" value="10">
+        <button type="submit" class="btn btn-primary">探查 10 次</button>
+      </form>
+      {% endif %}
+
+      <form
+        action="{{ url_for('scouts_post', action='probe') }}"
+        method="post"
+        onsubmit="return confirm('您確定要探查 {{ player_profile.scouting_chances_left }} 次數？');"
+      >
+        {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>{% endif %}
+        <input type="hidden" name="times" value="ALL">
+        <button type="submit" class="btn btn-danger">探查 全部</button>
+      </form>
+    </div>
+  
+    {% if signed_from_flash and signed_from_flash|length > 0 %}
+      <div class="alert alert-success">
+        <div class="font-semibold mb-1">簽約成功！以下球員已加入你的球隊：</div>
+        <ul class="list-disc ml-6">
+          {% for name in signed_from_flash %}
+            <li>{{ name }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <hr/>
+
+    {% if unsigned_players and unsigned_players|length > 0 %}
+      {% if just_scouted and just_scouted|length > 0 %}
+        <div class="space-y-2">
+          <h2 class="text-base font-semibold">剛探來的</h2>
+
+          <!-- 新增：將「剛探來的」改為表格+簽約表單 -->
+          <!--新增開始-->
+          <form action="{{ url_for('scouts', action='sign') }}" method="post" class="space-y-3">
+            {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>{% endif %}
+
+            <div class="overflow-x-auto">
+              <table class="table w-full text-sm">
+                <thead>
+                  <tr>
+                    <th class="whitespace-nowrap">簽約</th>
+                    <th class="whitespace-nowrap">姓名</th>
+                    <th class="whitespace-nowrap">身高</th>
+                    <th class="whitespace-nowrap">位置</th>
+                    <th class="whitespace-nowrap">等級</th>
+                    <!-- 技能欄位 -->
+                    <th class="whitespace-nowrap">準心</th>
+                    <th class="whitespace-nowrap">範圍</th>
+                    <th class="whitespace-nowrap">籃</th>
+                    <th class="whitespace-nowrap">卡位</th>
+                    <th class="whitespace-nowrap">干擾</th>
+                    <th class="whitespace-nowrap">破壞</th>
+                    <th class="whitespace-nowrap">跑位</th>
+                    <th class="whitespace-nowrap">運球</th>
+                    <th class="whitespace-nowrap">傳球</th>
+                    <th class="whitespace-nowrap">控球</th>
+                    <!-- 新增欄位 -->
+                    <th class="whitespace-nowrap">簽約薪資</th>
+                    <th class="whitespace-nowrap">簽約角色</th>
+                    <th class="whitespace-nowrap">簽約年限</th>
+                    {% if show_more is defined and show_more %}
+                    {% endif %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for p in just_scouted %}
+                    <tr>
+                      <td>
+                        <input type="checkbox" name="sign_ids" value="{{ p.player_id }}"/>
+                      </td>
+                      <td class="font-medium">{{ p.player_name }}</td>
+                      <td>{{ p.height_cm or '—' }}</td>
+                      <td>{{ p.position or '—' }}</td>
+                      <td>{{ p.overall_grade or '—' }}</td>
+
+                      <!-- 技能欄位（資料庫欄位） -->
+                      <td class="{% if p.shot_accuracy is number and p.shot_accuracy >= 12 %}text-green-600{% elif p.shot_accuracy is number and p.shot_accuracy <= 3 %}text-red-600{% endif %}">
+                        {{ p.shot_accuracy or '—' }}
+                      </td>
+                      <td class="{% if p.shot_range is number and p.shot_range >= 12 %}text-green-600{% elif p.shot_range is number and p.shot_range <= 3 %}text-red-600{% endif %}">
+                        {{ p.shot_range or '—' }}
+                      </td>
+                      <td class="{% if p.def_rebound is number and p.def_rebound >= 12 %}text-green-600{% elif p.def_rebound is number and p.def_rebound <= 3 %}text-red-600{% endif %}">
+                        {{ p.def_rebound or '—' }}
+                      </td>
+                      <td class="{% if p.def_boxout is number and p.def_boxout >= 12 %}text-green-600{% elif p.def_boxout is number and p.def_boxout <= 3 %}text-red-600{% endif %}">
+                        {{ p.def_boxout or '—' }}
+                      </td>
+                      <td class="{% if p.def_contest is number and p.def_contest >= 12 %}text-green-600{% elif p.def_contest is number and p.def_contest <= 3 %}text-red-600{% endif %}">
+                        {{ p.def_contest or '—' }}
+                      </td>
+                      <td class="{% if p.def_disrupt is number and p.def_disrupt >= 12 %}text-green-600{% elif p.def_disrupt is number and p.def_disrupt <= 3 %}text-red-600{% endif %}">
+                        {{ p.def_disrupt or '—' }}
+                      </td>
+                      <td class="{% if p.off_move is number and p.off_move >= 12 %}text-green-600{% elif p.off_move is number and p.off_move <= 3 %}text-red-600{% endif %}">
+                        {{ p.off_move or '—' }}
+                      </td>
+                      <td class="{% if p.off_dribble is number and p.off_dribble >= 12 %}text-green-600{% elif p.off_dribble is number and p.off_dribble <= 3 %}text-red-600{% endif %}">
+                        {{ p.off_dribble or '—' }}
+                      </td>
+                      <td class="{% if p.off_pass is number and p.off_pass >= 12 %}text-green-600{% elif p.off_pass is number and p.off_pass <= 3 %}text-red-600{% endif %}">
+                        {{ p.off_pass or '—' }}
+                      </td>
+                      <td class="{% if p.off_handle is number and p.off_handle >= 12 %}text-green-600{% elif p.off_handle is number and p.off_handle <= 3 %}text-red-600{% endif %}">
+                        {{ p.off_handle or '—' }}
+                      </td>
+
+                      <!-- 簽約薪資（使用 start_salary 做顯示） -->
+                      <td class="font-mono">
+                        {{ p.start_salary is defined and p.start_salary is number and p.start_salary > 0
+                           and ('${:,.0f}'.format(p.start_salary)) or '—' }}
+                      </td>
+
+                      <!-- 簽約角色 -->
+                      <td>
+                        <select name="sign_roles[{{ p.player_id }}]" class="select select-sm w-full max-w-xs">
+                          {% set role_options = [
+                            ("ROLE", "角色球員"),
+                            ("STARTER", "先發球員"),
+                            ("GLUE", "綠葉球員"),
+                            ("SPECIALIST", "功能球員"),
+                            ("STAR", "明星球員")
+                          ] %}
+                          {% set default_role = (p.default_role if p.default_role is defined else "ROLE") %}
+                          {% for value, label in role_options %}
+                            <option value="{{ value }}"{% if default_role == value %} selected{% endif %}>{{ label }}</option>
+                          {% endfor %}
+                        </select>
+                      </td>
+
+                      <!-- 簽約年限 -->
+                      <td>
+                        <select name="sign_year[{{ p.player_id }}]" class="select select-sm w-full max-w-xs">
+                          {% set year_options = [
+                            ("1", "1 個賽季"),
+                            ("2", "2 個賽季"),
+                            ("3", "3 個賽季"),
+                            ("4", "4 個賽季")
+                          ] %}
+                          {% set sign_year = (p.sign_year if p.sign_year is defined else "1") %}
+                          {% for value, label in year_options %}
+                            <option value="{{ value }}"{% if sign_year == value %} selected{% endif %}>{{ label }}</option>
+                          {% endfor %}
+                        </select>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="flex justify-center">
+              <button type="submit" class="btn btn-success">簽約所選球員</button>
+            </div>
+          </form>
+          <!--新增結束-->
+        </div>
+      {% endif %}
+
+      {% if prev_scouted and prev_scouted|length > 0 %}
+        <div class="space-y-2 mt-4">
+          <h2 class="text-base font-semibold">之前探的</h2>
+
+          <!-- 新增：將「之前探的」改為表格+簽約表單 -->
+          <!--新增開始-->
+          <form action="{{ url_for('scouts', action='sign') }}" method="post" class="space-y-3">
+            {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>{% endif %}
+
+            <div class="overflow-x-auto">
+              <table class="table w-full text-sm">
+                <thead>
+                  <tr>
+                    <th class="whitespace-nowrap">簽約</th>
+                    <th class="whitespace-nowrap">姓名</th>
+                    <th class="whitespace-nowrap">身高</th>
+                    <th class="whitespace-nowrap">位置</th>
+                    <th class="whitespace-nowrap">等級</th>
+                    <!-- 技能欄位 -->
+                    <th class="whitespace-nowrap">準心</th>
+                    <th class="whitespace-nowrap">範圍</th>
+                    <th class="whitespace-nowrap">籃</th>
+                    <th class="whitespace-nowrap">卡位</th>
+                    <th class="whitespace-nowrap">干擾</th>
+                    <th class="whitespace-nowrap">破壞</th>
+                    <th class="whitespace-nowrap">跑位</th>
+                    <th class="whitespace-nowrap">運球</th>
+                    <th class="whitespace-nowrap">傳球</th>
+                    <th class="whitespace-nowrap">控球</th>
+                    <!-- 新增欄位 -->
+                    <th class="whitespace-nowrap">簽約薪資</th>
+                    <th class="whitespace-nowrap">簽約角色</th>
+                    <th class="whitespace-nowrap">簽約年限</th>
+                    {% if show_more is defined and show_more %}
+                    {% endif %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for p in prev_scouted %}
+                    <tr>
+                      <td>
+                        <input type="checkbox" name="sign_ids" value="{{ p.player_id }}"/>
+                      </td>
+                      <td class="font-medium">{{ p.player_name }}</td>
+                      <td>{{ p.height_cm or '—' }}</td>
+                      <td>{{ p.position or '—' }}</td>
+                      <td>{{ p.overall_grade or '—' }}</td>
+
+                      <!-- 技能欄位（資料庫欄位） -->
+                      <td class="{% if p.shot_accuracy is number and p.shot_accuracy >= 12 %}text-green-600{% elif p.shot_accuracy is number and p.shot_accuracy <= 3 %}text-red-600{% endif %}">
+                        {{ p.shot_accuracy or '—' }}
+                      </td>
+                      <td class="{% if p.shot_range is number and p.shot_range >= 12 %}text-green-600{% elif p.shot_range is number and p.shot_range <= 3 %}text-red-600{% endif %}">
+                        {{ p.shot_range or '—' }}
+                      </td>
+                      <td class="{% if p.def_rebound is number and p.def_rebound >= 12 %}text-green-600{% elif p.def_rebound is number and p.def_rebound <= 3 %}text-red-600{% endif %}">
+                        {{ p.def_rebound or '—' }}
+                      </td>
+                      <td class="{% if p.def_boxout is number and p.def_boxout >= 12 %}text-green-600{% elif p.def_boxout is number and p.def_boxout <= 3 %}text-red-600{% endif %}">
+                        {{ p.def_boxout or '—' }}
+                      </td>
+                      <td class="{% if p.def_contest is number and p.def_contest >= 12 %}text-green-600{% elif p.def_contest is number and p.def_contest <= 3 %}text-red-600{% endif %}">
+                        {{ p.def_contest or '—' }}
+                      </td>
+                      <td class="{% if p.def_disrupt is number and p.def_disrupt >= 12 %}text-green-600{% elif p.def_disrupt is number and p.def_disrupt <= 3 %}text-red-600{% endif %}">
+                        {{ p.def_disrupt or '—' }}
+                      </td>
+                      <td class="{% if p.off_move is number and p.off_move >= 12 %}text-green-600{% elif p.off_move is number and p.off_move <= 3 %}text-red-600{% endif %}">
+                        {{ p.off_move or '—' }}
+                      </td>
+                      <td class="{% if p.off_dribble is number and p.off_dribble >= 12 %}text-green-600{% elif p.off_dribble is number and p.off_dribble <= 3 %}text-red-600{% endif %}">
+                        {{ p.off_dribble or '—' }}
+                      </td>
+                      <td class="{% if p.off_pass is number and p.off_pass >= 12 %}text-green-600{% elif p.off_pass is number and p.off_pass <= 3 %}text-red-600{% endif %}">
+                        {{ p.off_pass or '—' }}
+                      </td>
+                      <td class="{% if p.off_handle is number and p.off_handle >= 12 %}text-green-600{% elif p.off_handle is number and p.off_handle <= 3 %}text-red-600{% endif %}">
+                        {{ p.off_handle or '—' }}
+                      </td>
+
+                      <!-- 簽約薪資（使用 start_salary 做顯示） -->
+                      <td class="font-mono">
+                        {{ p.start_salary is defined and p.start_salary is number and p.start_salary > 0
+                           and ('${:,.0f}'.format(p.start_salary)) or '—' }}
+                      </td>
+
+                      <!-- 簽約角色 -->
+                      <td>
+                        <select name="sign_roles[{{ p.player_id }}]" class="select select-sm w-full max-w-xs">
+                          {% set role_options = [
+                            ("ROLE", "角色球員"),
+                            ("STARTER", "先發球員"),
+                            ("GLUE", "綠葉球員"),
+                            ("SPECIALIST", "功能球員"),
+                            ("STAR", "明星球員")
+                          ] %}
+                          {% set default_role = (p.default_role if p.default_role is defined else "ROLE") %}
+                          {% for value, label in role_options %}
+                            <option value="{{ value }}"{% if default_role == value %} selected{% endif %}>{{ label }}</option>
+                          {% endfor %}
+                        </select>
+                      </td>
+
+                      <!-- 簽約年限 -->
+                      <td>
+                        <select name="sign_year[{{ p.player_id }}]" class="select select-sm w-full max-w-xs">
+                          {% set year_options = [
+                            ("1", "1 個賽季"),
+                            ("2", "2 個賽季"),
+                            ("3", "3 個賽季"),
+                            ("4", "4 個賽季")
+                          ] %}
+                          {% set sign_year = (p.sign_year if p.sign_year is defined else "1") %}
+                          {% for value, label in year_options %}
+                            <option value="{{ value }}"{% if sign_year == value %} selected{% endif %}>{{ label }}</option>
+                          {% endfor %}
+                        </select>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="flex justify-end gap-2">
+              <button type="submit" class="btn btn-primary">簽約所選球員</button>
+            </div>
+          </form>
+          <!--新增結束-->
+        </div>
+      {% else %}
+        <div class="text-sm text-muted text-center">
+          尚未有探查結果或所有新秀已簽約。
+        </div>
+      {% endif %}
+    {% endif %}
   </div>
 {% endblock %}

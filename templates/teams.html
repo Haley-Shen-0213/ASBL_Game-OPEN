@@ -2,8 +2,88 @@
 {% set active_tab = "teams" %}
 {% block title %}球隊 - ASha Basketball League{% endblock %}
 {% block content %}
+
+  <!-- 球隊資訊 -->
   <div class="card">
-    <p>目前所在功能：<strong>teams</strong></p>
-    <p>這裡是球隊頁面的內容區。</p>
+    <h2>球隊資訊</h2>
+    <div>
+      <strong>玩家名稱：</strong>{{ player_profile.player_name }}　
+      <strong>球隊名稱：</strong>{{ player_profile.team_name }}
+    </div>
+    <div>
+      <strong>球隊資金：</strong>{{ "{:,}".format(player_profile.team_money) }}　
+      <strong>球員數：</strong>{{ player_profile.team_player_count }}　
+      <strong>總薪資：</strong>{{ "{:,}".format(player_profile.team_salary) }}
+    </div>
+  </div>
+
+  <!-- 球員名單 -->
+  <div class="card">
+    <h2>球員名單</h2>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>名字</th>
+            <th>年齡</th>
+            <th>身高(cm)</th>
+            <th>等級</th>
+            <th>體力</th>
+            <th>力量</th>
+            <th>速度</th>
+            <th>彈性</th>
+            <th>手感</th>
+            <th>射速</th>
+            <th>準心</th>
+            <th>範圍</th>
+            <th>籃板</th>
+            <th>卡位</th>
+            <th>干擾</th>
+            <th>破壞</th>
+            <th>跑位</th>
+            <th>運球</th>
+            <th>傳球</th>
+            <th>控球</th>
+            <th>薪水</th>
+            <th>合約長度</th>
+            <th>合約角色</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in players_signed %}
+          <tr>
+            <td>{{ p.player_name }}</td>
+            <td>{{ p.age }}</td>
+            <td>{{ p.height_cm }}</td>
+            <td>{{ p.overall_grade }}</td>
+            <td>{{ p.ath_stamina }}</td>
+            <td>{{ p.ath_strength }}</td>
+            <td>{{ p.ath_speed }}</td>
+            <td>{{ p.ath_jump }}</td>
+            <td>{{ p.shot_touch }}</td>
+            <td>{{ p.shot_release }}</td>
+            <td>{{ p.shot_accuracy }}</td>
+            <td>{{ p.shot_range }}</td>
+            <td>{{ p.def_rebound }}</td>
+            <td>{{ p.def_boxout }}</td>
+            <td>{{ p.def_contest }}</td>
+            <td>{{ p.def_disrupt }}</td>
+            <td>{{ p.off_move }}</td>
+            <td>{{ p.off_dribble }}</td>
+            <td>{{ p.off_pass }}</td>
+            <td>{{ p.off_handle }}</td>
+            <td>{{ p.player_salary }}</td>
+            <td>{{ p.sign_roles }}</td>
+            <td>{{ p.contract_years }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="22" style="text-align:center;">目前沒有球員資料</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 {% endblock %}
+

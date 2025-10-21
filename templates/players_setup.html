@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}建立玩家資訊{% endblock %}
+{% block content %}
+  <section class="panel" style="padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--panel);">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="margin:0; font-size:20px; font-weight:700;">建立玩家資訊</h2>
+      <div style="font-size:14px; color:var(--muted);">
+        線上人數：<strong style="color:var(--text);">{{ online_count }}</strong>
+      </div>
+    </div>
+
+    <div style="height:12px;"></div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          {% for category, msg in messages %}
+            <div class="flash {{ 'is-warning' if category in ['danger','warning'] else 'is-success' }}">
+            {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+        <div style="height:12px;"></div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('players_setup') }}" style="display:grid; gap:12px;">
+      <label style="display:grid; gap:6px;">
+        <span style="font-size:12px; color:var(--muted);">玩家名稱（最多 8 字）</span>
+        <input type="text" name="player_name" value="{{ form.player_name }}"
+               style="padding:10px 12px; border-radius:10px; border:1px solid var(--btn-b); background:var(--btn); color:var(--text);" required>
+      </label>
+      <label style="display:grid; gap:6px;">
+        <span style="font-size:12px; color:var(--muted);">球隊名稱（最多 8 字）</span>
+        <input type="text" name="team_name" value="{{ form.team_name }}"
+               style="padding:10px 12px; border-radius:10px; border:1px solid var(--btn-b); background:var(--btn); color:var(--text);" required>
+      </label>
+      <label style="display:grid; gap:6px;">
+        <span style="font-size:12px; color:var(--muted);">場館名稱（最多 8 字）</span>
+        <input type="text" name="arena_name" value="{{ form.arena_name }}"
+               style="padding:10px 12px; border-radius:10px; border:1px solid var(--btn-b); background:var(--btn); color:var(--text);" required>
+      </label>
+      <label style="display:grid; gap:6px;">
+        <span style="font-size:12px; color:var(--muted);">粉絲團名稱（最多 8 字）</span>
+        <input type="text" name="fanpage_name" value="{{ form.fanpage_name }}"
+               style="padding:10px 12px; border-radius:10px; border:1px solid var(--btn-b); background:var(--btn); color:var(--text);" required>
+      </label>
+
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <a href="{{ url_for('index') }}"
+           style="display:inline-flex; align-items:center; gap:8px; padding:10px 14px; background:var(--hover); color:var(--text); border:1px solid var(--btn-b); border-radius:10px; text-decoration:none;">
+          返回首頁
+        </a>
+        <button type="submit"
+                style="display:inline-flex; align-items:center; gap:8px; padding:10px 14px; background:var(--accent); color:#111; border:1px solid var(--btn-b); border-radius:10px; font-weight:700;">
+          送出
+        </button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

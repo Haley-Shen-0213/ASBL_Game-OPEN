@@ -3,53 +3,88 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}ASha Basketball League{% endblock %}</title>
+    <title>{% block title %}ASBL{% endblock %}</title>
     <style>
       :root{
-        --bg:#0f172a; --bar:#ea580c; --text:#ffffff; --muted:#e5e7eb;
-        --border:#334155; --btn:#111827; --btn-b:#475569;
-        --panel:#0b1220; --hover:#1f2937; --accent:#ea580c;
+        --bg:#0f172a; --text:#111827; /* 全站預設文字改深色以配合淺背景區 */
+        --muted:#374151;
+        --border:#334155;
+        --btn:#111827; --btn-b:#475569;
+        --panel:#C084FC;       /* 左側選單背景 */
+        --main-bg:#BFA8FF;     /* 主內容區背景 */
+        --hover:rgba(0,0,0,.08);
+
+        /* Smooth gradient palette for header */
+        --pink:#FFA6C9;
+        --blue:#21B7D6;
+        --violet:#8B5CF6;
+
+        /* Gold C palette */
+        --goldC:#F8E3B0;
+        --goldC-shadow:#A67C00;
+        --goldC-hi:#FFFFFF;
+
+        --shadow-dark: rgba(0,0,0,.25); /* 降低陰影濃度以配合淺底 */
       }
       html,body{height:100%}
-      body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC","Microsoft JhengHei",sans-serif;}
+      body{
+        margin:0;
+        background:#0b1220; /* 全頁底（側/主有自己的背景） */
+        color:var(--text);
+        font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC","Microsoft JhengHei",sans-serif;
+      }
 
+      /* Header: taller + smooth gradient */
       .header{
         display:grid;
-        grid-template-columns: 1fr 1fr auto;
+        grid-template-columns: 1fr auto auto;
         align-items:center;
         gap:16px;
-        padding:12px 18px;
-        background: var(--bar);
+        padding:16px 20px;
+        min-height:88px;
+        background: linear-gradient(90deg,
+          var(--pink) 0%,
+          #FFAACD 12%,
+          #7ED3E3 22%,
+          var(--blue) 35%,
+          #1FB0D0 55%,
+          #5DA9EF 65%,
+          #7F6AF6 78%,
+          var(--violet) 100%
+        );
+        color:#111827; /* header 內文用深色字，提升可讀性 */
       }
-      .left-block{ display:flex; align-items:center; gap:12px; }
-      /* 新增：把整個左側區塊包成可點擊連結時的樣式重置 */
+      .left-block{ display:flex; align-items:center; gap:12px; margin-left:1cm; }
       .link-reset{ text-decoration:none; color:inherit; display:flex; align-items:center; gap:12px; }
-      .link-reset:focus-visible{ outline:2px solid rgba(255,255,255,.35); outline-offset:2px; border-radius:8px; }
+      .link-reset:focus-visible{ outline:2px solid rgba(0,0,0,.25); outline-offset:2px; border-radius:8px; }
       .logo-box{
-        width:40px; height:40px; border-radius:8px; overflow:hidden;
-        background:#fff2; display:flex; align-items:center; justify-content:center;
-        border:1px solid rgba(255,255,255,.25);
+        width:44px; height:44px; border-radius:8px; overflow:hidden;
+        background:#fff4; display:flex; align-items:center; justify-content:center;
+        border:1px solid rgba(255,255,255,.35);
       }
       .logo-box img{width:100%; height:100%; object-fit:contain}
-      .game-name{ line-height:1.2; }
-      .game-name .line{ display:block; font-weight:700 }
-      .game-name .line:nth-child(1){ font-size:18px }
-      .game-name .line:nth-child(2){ font-size:16px }
-      .game-name .line:nth-child(3){ font-size:16px }
 
-      /* 微亮的 hover 效果（整塊可點時維持既有視覺） */
-      .logo-box:hover, .game-name:hover{ filter:brightness(1.08) }
+      /* ASBL gold typography */
+      .brand{
+        font-weight:900; letter-spacing:.6px; font-size:22px;
+        text-shadow: 0 1px 4px var(--shadow-dark);
+        -webkit-text-stroke: 1px rgba(0,0,0,.35);
+        -webkit-text-stroke: 1px rgba(0,0,0,.35);
+        background: linear-gradient(180deg, var(--goldC-hi) 0%, var(--goldC) 55%, var(--goldC-shadow) 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      }
 
-      .middle-block{ display:flex; flex-direction:column; gap:4px; color:var(--muted); }
+      .middle-block{ display:flex; flex-direction:column; gap:4px; color:#1f2937; }
       .middle-block .row{ font-size:14px }
-      .middle-block strong{ color:#fff }
+      .middle-block strong{ color:#111827 }
 
       .right-block{ display:flex; align-items:center; gap:10px; }
       .avatar{
-        width:28px; height:28px; border-radius:50%; background:#0003;
-        border:1px solid rgba(255,255,255,.35);
+        width:28px; height:28px; border-radius:50%; background:#0002;
+        border:1px solid rgba(0,0,0,.15);
         display:flex; align-items:center; justify-content:center;
         font-size:12px; font-weight:700;
+        color:#111827;
       }
       .btn{
         background:var(--btn); color:#fff; border:1px solid var(--btn-b);
@@ -57,36 +92,66 @@
       }
       .btn:hover{ filter:brightness(1.1) }
 
-      .app{ display:flex; min-height: calc(100vh - 64px); }
+      .app{ display:flex; min-height: calc(100vh - 88px); }
+
+      /* Sidebar: 改為 #C084FC */
       .sidebar{
-        width:240px; background:var(--panel); border-right:1px solid var(--border);
+        width:240px; background:var(--panel);
+        border-right:1px solid rgba(0,0,0,.25);
         padding:16px 12px;
+        color:#1f093a; /* 深一點的紫黑，提升對比 */
       }
-      .sidebar .section-title{ font-size:12px; color:#94a3b8; letter-spacing:.05em; margin:0 8px 8px; }
+      .sidebar .section-title{ font-size:12px; color:#2b0c60; letter-spacing:.05em; margin:0 8px 8px; }
       .nav{ list-style:none; margin:0; padding:0; }
       .nav li{ margin-bottom:6px; }
       .nav a{
         display:flex; align-items:center; gap:8px;
-        color:#e2e8f0; text-decoration:none;
+        color:#20074a; text-decoration:none;
         padding:10px 12px; border-radius:8px;
         border:1px solid transparent;
+        background: rgba(255,255,255,.18);
       }
-      .nav a:hover{ background:var(--hover); border-color:var(--border); }
-      .nav a.active{ background:#0f172a; border-color:var(--accent); color:#fff; }
+      .nav a:hover{ background: rgba(255,255,255,.28); border-color: rgba(0,0,0,.12); }
+      .nav a.active{
+        background: rgba(255,255,255,.38);
+        border-color: rgba(0,0,0,.18);
+        color:#14043a;
+        font-weight:600;
+      }
 
-      .main{ flex:1; padding:24px; }
-      .card{ border:1px dashed var(--border); border-radius:12px; padding:24px; color:#cbd5e1; text-align:center; }
+      /* Main: 改為 #BFA8FF */
+      .main{
+        flex:1; padding:24px;
+        background: var(--main-bg);
+        color:#1f2937;
+      }
+      .card{
+        border:1px dashed rgba(0,0,0,.25);
+        border-radius:12px; padding:24px;
+        color:#111827; text-align:center;
+        background: rgba(255,255,255,.35);
+        box-shadow: 0 2px 6px rgba(0,0,0,.12);
+      }
 
-      .page-content{ padding:24px; min-height: calc(100vh - 64px); }
-      .placeholder{ border:1px dashed var(--border); border-radius:12px; padding:24px; color:#cbd5e1; text-align:center; }
+      .page-content{ padding:24px; min-height: calc(100vh - 88px); }
+      .placeholder{
+        border:1px dashed rgba(0,0,0,.25);
+        border-radius:12px; padding:24px; color:#111827; text-align:center;
+        background: rgba(255,255,255,.25);
+      }
 
       @media (max-width: 768px){
-        .header{ grid-template-columns: 1fr; gap:10px }
+        .header{ grid-template-columns: 1fr; gap:10px; min-height: 96px; padding:18px 16px; }
         .middle-block{ order:3 }
         .right-block{ order:2; justify-content:flex-start }
-        .sidebar{ width: 100%; border-right:none; border-bottom:1px solid var(--border); }
-        .app{ flex-direction:column; }
+        .sidebar{ width: 100%; border-right:none; border-bottom:1px solid rgba(0,0,0,.25); }
+        .app{ flex-direction:column; min-height: calc(100vh - 96px); }
+        .left-block{ margin-left:16px; }
       }
+
+      .flash { padding:10px 12px; border-radius:10px; border:1px solid var(--btn-b); color: var(--text); background: rgba(255,255,255,.25); }
+      .flash.is-warning { background: rgba(234,88,12,0.20); }
+      .flash.is-success { background: rgba(34,197,94,0.20); }
     </style>
   </head>
   <body>
@@ -97,9 +162,7 @@
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo" />
             </div>
             <div class="game-name">
-            <span class="line">ASha</span>
-            <span class="line">Basketball</span>
-            <span class="line">League</span>
+            <span class="line">ASBL(ASa Basketball League)</span>
             </div>
         </a>
       </div>
@@ -109,12 +172,16 @@
         <div class="row">線上人數：<strong>{{ online_count or 0 }}</strong></div>
       </div>
       <div class="right-block">
-        <span class="avatar">{{ (account or "G")[:1] }}</span>
-        <span>{{ account or "Guest" }}</span>
-        {% if account %}
-        <form action="{{ url_for('logout') }}" method="post" style="margin:0">
-          <button class="btn" type="submit">登出</button>
+        {% if current_user.is_authenticated %}
+        <div class="avatar">a</div>
+        <div class="name">
+          {{ (player_profile.player_name if player_profile and player_profile.player_name) or current_user.username }}
+        </div>
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+          {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>{% endif %}
+          <button type="submit" class="btn btn-dark">登出</button>
         </form>
+      </div>
         {% else %}
         <a class="btn" href="{{ url_for('login_page') }}">登入</a>
         {% endif %}
@@ -123,22 +190,31 @@
 
     {% if account %}
     <div class="app">
-      <aside class="sidebar">
-        <div class="section-title">選單</div>
-        <ul class="nav">
-            <li><a href="{{ url_for('players') }}" class="{% if active_tab=='players' %}active{% endif %}">玩家</a></li>
-            <li><a href="{{ url_for('teams') }}" class="{% if active_tab=='teams' %}active{% endif %}">球隊</a></li>
-            <li><a href="{{ url_for('assets') }}" class="{% if active_tab=='assets' %}active{% endif %}">資產</a></li>
-            <li><a href="{{ url_for('leagues') }}" class="{% if active_tab=='leagues' %}active{% endif %}">聯賽</a></li>
-            <li><a href="{{ url_for('schedules') }}" class="{% if active_tab=='schedules' %}active{% endif %}">賽程</a></li>
-            <li><a href="{{ url_for('tactics') }}" class="{% if active_tab=='tactics' %}active{% endif %}">戰術</a></li>
-            <li><a href="{{ url_for('scouts') }}" class="{% if active_tab=='scouts' %}active{% endif %}">球探</a></li>
-            <li><a href="{{ url_for('market') }}" class="{% if active_tab=='market' %}active{% endif %}">市場</a></li>
-            <li><a href="{{ url_for('trades') }}" class="{% if active_tab=='trades' %}active{% endif %}">交易</a></li>
-            <li><a href="{{ url_for('community') }}" class="{% if active_tab=='community' %}active{% endif %}">社群</a></li>
-            <li><a href="{{ url_for('guide') }}" class="{% if active_tab=='guide' %}active{% endif %}">指南</a></li>
-        </ul>
-      </aside>
+    <aside class="sidebar">
+      <div class="section-title">選單</div>
+      <ul class="nav">
+        <!-- 永遠顯示的基本項目 -->
+        <li>
+          <a href="{{ url_for('players') }}" class="{% if active_tab=='players' %}active{% endif %}">玩家</a>
+        </li>
+
+        {% if has_team %}
+          <!-- 只有已設定球隊名稱才顯示 -->
+          <li><a href="{{ url_for('teams') }}" class="{% if active_tab=='teams' %}active{% endif %}">球隊</a></li>
+          <li><a href="{{ url_for('assets') }}" class="{% if active_tab=='assets' %}active{% endif %}">資產</a></li>
+          <li><a href="{{ url_for('leagues') }}" class="{% if active_tab=='leagues' %}active{% endif %}">聯賽</a></li>
+          <li><a href="{{ url_for('schedules') }}" class="{% if active_tab=='schedules' %}active{% endif %}">賽程</a></li>
+          <li><a href="{{ url_for('tactics') }}" class="{% if active_tab=='tactics' %}active{% endif %}">戰術</a></li>
+          <li><a href="{{ url_for('scouts') }}" class="{% if active_tab=='scouts' %}active{% endif %}">球探</a></li>
+          <li><a href="{{ url_for('market') }}" class="{% if active_tab=='market' %}active{% endif %}">市場</a></li>
+          <li><a href="{{ url_for('trades') }}" class="{% if active_tab=='trades' %}active{% endif %}">交換</a></li>
+          <li><a href="{{ url_for('community') }}" class="{% if active_tab=='community' %}active{% endif %}">社群</a></li>
+          <li><a href="{{ url_for('guide') }}" class="{% if active_tab=='guide' %}active{% endif %}">指南</a></li>
+        {% else %}
+          <!-- 尚未設定球隊時，可以只保留玩家，或加一個導引連結 -->
+        {% endif %}
+      </ul>
+    </aside>
       <main class="main">
         {% block content %}{% endblock %}
       </main>
